@@ -1,0 +1,40 @@
+{
+  "//": "PLACEHOLDER FILE — obviously-fake values. Replace with the real file downloaded from the Firebase console (see README.md 'Firebase setup'). Every id below is invented and will not authenticate against any real project.",
+  "project_info": {
+    "project_number": "000000000000",
+    "project_id": "tasky-placeholder",
+    "storage_bucket": "tasky-placeholder.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "android_client_info": {
+          "package_name": "com.vinay.todoapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "000000000000-fakefakefakefakefakefakefakefake.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyFAKE_FAKE_FAKE_FAKE_FAKE_FAKE_FAKE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "000000000000-fakefakefakefakefakefakefakefake.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
