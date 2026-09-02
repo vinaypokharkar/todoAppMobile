@@ -189,6 +189,27 @@ you:
    it's absent, so `assembleRelease` builds out of the box for verification even before you've
    generated a real one — but do not distribute that build; it isn't really signed for release.
 
+## Troubleshooting — build-critical workarounds
+
+Two workarounds keep this project buildable. Do not remove either.
+
+**`react-native-screens` patch.** `react-native-screens@4.27.0` (the current latest) does not
+compile against React Native 0.83: its Fabric spec files use `React.ComponentRef<>`, but RN
+0.83's codegen TypeScript parser only accepts the deprecated `React.ElementRef<>`, so the build
+dies at `:react-native-screens:generateCodegenSchemaFromJavaScript`. This is upstream bug
+[facebook/react-native#54272](https://github.com/facebook/react-native/issues/54272); there is
+no fixed stable release. `patches/react-native-screens+4.27.0.patch` fixes it, and the
+`postinstall: patch-package` script in `package.json` reapplies it on every `npm install`.
+**Never delete `patches/` or the `postinstall` script** — without them a fresh `npm install`
+produces a project that cannot build.
+
+**`react-native-gesture-handler` pinned to `^2.32.0`.** v3 relocates its generated Fabric C++
+so the resulting object filename exceeds Windows' 260-character `MAX_PATH`, and `ninja` fails
+with `Filename longer than 260 characters`. Moving the project to a shorter path does not fix
+it — the source path is embedded twice in the object path. Enabling Windows `LongPathsEnabled`
+does not fix it either — the Android SDK bundles ninja 1.10.2, and long-path manifest support
+only landed in ninja 1.11. **Do not upgrade `react-native-gesture-handler` to v3** on Windows.
+
 ## Testing
 
 ```bash
