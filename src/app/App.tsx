@@ -1,19 +1,24 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
+import { ClerkProvider } from '@clerk/expo';
+import * as WebBrowser from 'expo-web-browser';
 import { store } from './store';
 import { ThemeProvider, useTheme } from '../theme/ThemeProvider';
 import RootNavigator from '../navigation/RootNavigator';
 import { useAuthListener } from '../features/auth/useAuthListener';
-import { configureGoogleSignIn } from '../features/auth/googleSignIn';
+import { tokenCache } from '../features/auth/tokenCache';
+import { CLERK_PUBLISHABLE_KEY } from '../config/env';
+
+// Required once at startup so an in-progress OAuth browser session (Google)
+// resolves back into the app instead of leaving a dangling browser tab.
+WebBrowser.maybeCompleteAuthSession();
 
 function Root() {
   const { theme } = useTheme();
   useAuthListener();
-
-  useEffect(() => { configureGoogleSignIn(); }, []);
 
   return (
     <>
@@ -32,11 +37,13 @@ export default function App() {
     // does nothing on Android.
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <Provider store={store}>
-          <ThemeProvider>
-            <Root />
-          </ThemeProvider>
-        </Provider>
+        <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
+          <Provider store={store}>
+            <ThemeProvider>
+              <Root />
+            </ThemeProvider>
+          </Provider>
+        </ClerkProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

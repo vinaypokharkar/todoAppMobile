@@ -1,4 +1,5 @@
 {
   "name": "todoAppMobile",
-  "displayName": "Tasky"
+  "displayName": "Tasky",
+  "scheme": "tasky"
 }

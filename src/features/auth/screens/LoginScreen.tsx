@@ -9,14 +9,15 @@ import {
   View,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { getAuth, signInWithEmailAndPassword } from '@react-native-firebase/auth';
+import { useSSO } from '@clerk/expo';
+import { useSignIn } from '@clerk/expo/legacy';
+import * as Linking from 'expo-linking';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { radius, spacing, typography } from '../../../theme/tokens';
 import { Screen } from '../../../components/Screen';
 import { TextField } from '../../../components/TextField';
 import { Button } from '../../../components/Button';
-import { friendlyAuthError } from '../firebaseErrors';
-import { signInWithGoogle } from '../googleSignIn';
+import { friendlyAuthError } from '../clerkErrors';
 import { isValidEmail } from '../../../utils/validation';
 import type { AuthStackParamList } from '../../../navigation/types';
 
@@ -24,6 +25,8 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
   const { theme } = useTheme();
+  const { signIn, setActive, isLoaded } = useSignIn();
+  const { startSSOFlow } = useSSO();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -50,14 +53,19 @@ export default function LoginScreen({ navigation }: Props) {
   };
 
   const handleSubmit = async () => {
-    if (submitting) return;
+    if (submitting || !isLoaded) return;
     setBanner(null);
     if (!validate()) return;
 
     setSubmitting(true);
     try {
-      await signInWithEmailAndPassword(getAuth(), email.trim(), password);
-      // onAuthStateChanged swaps the navigator — nothing to do here.
+      const attempt = await signIn.create({ identifier: email.trim(), password });
+      if (attempt.status === 'complete') {
+        await setActive({ session: attempt.createdSessionId });
+        // useAuthListener swaps the navigator — nothing to do here.
+      } else {
+        setBanner('Additional verification is required for this account.');
+      }
     } catch (error) {
       setBanner(friendlyAuthError(error));
     } finally {
@@ -70,7 +78,14 @@ export default function LoginScreen({ navigation }: Props) {
     setBanner(null);
     setSubmitting(true);
     try {
-      await signInWithGoogle();
+      const { createdSessionId, setActive: setActiveSSO } = await startSSOFlow({
+        strategy: 'oauth_google',
+        redirectUrl: Linking.createURL('/oauth-native-callback'),
+      });
+      if (createdSessionId && setActiveSSO) {
+        await setActiveSSO({ session: createdSessionId });
+      }
+      // else: user cancelled the browser flow — nothing to do.
     } catch (error) {
       setBanner(friendlyAuthError(error));
     } finally {

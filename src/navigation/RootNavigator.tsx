@@ -16,7 +16,7 @@ const AppStack = createNativeStackNavigator<AppStackParamList>();
 export default function RootNavigator() {
   const { user, initialising } = useAppSelector(s => s.auth);
 
-  // Hold on the splash until Firebase reports the persisted session.
+  // Hold on the splash until Clerk reports the persisted session.
   // Without this the app flashes Login for a frame on every warm start.
   if (initialising) return <SplashScreen />;
 

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { getAuth, signOut } from '@react-native-firebase/auth';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { useAuth } from '@clerk/expo';
 import { useTheme } from '../../../theme/ThemeProvider';
 import { radius, spacing, typography } from '../../../theme/tokens';
 import { Screen } from '../../../components/Screen';
@@ -20,23 +19,14 @@ const MODES: { value: 'light' | 'dark' | 'system'; label: string }[] = [
 export default function ProfileScreen() {
   const { theme, mode, setMode } = useTheme();
   const dispatch = useAppDispatch();
+  const { signOut } = useAuth();
   const user = useAppSelector(s => s.auth.user);
   const { data: stats } = useGetStatsQuery();
 
   const initial = (user?.displayName?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
 
   const handleSignOut = async () => {
-    const firebaseUser = getAuth().currentUser;
-    const usedGoogle = firebaseUser?.providerData.some(p => p.providerId === 'google.com');
-
-    await signOut(getAuth());
-    if (usedGoogle) {
-      try {
-        await GoogleSignin.signOut();
-      } catch {
-        // best-effort — the Firebase sign-out already ended the session
-      }
-    }
+    await signOut();
     // REQUIRED: without this, the next user who signs in on this device
     // sees the previous user's cached task list.
     dispatch(baseApi.util.resetApiState());

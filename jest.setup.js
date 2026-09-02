@@ -4,12 +4,18 @@ require('react-native-gesture-handler/jestSetup');
 // for why the package's own mock doesn't work under Jest at this version.
 jest.mock('react-native-reanimated', () => require('./__mocks__/reanimatedMock'));
 
-jest.mock('@react-native-firebase/auth', () => ({
-  getAuth: () => ({ currentUser: { uid: 'test-uid', getIdToken: async () => 'test-token' } }),
-  onAuthStateChanged: jest.fn(() => jest.fn()),
-  signInWithEmailAndPassword: jest.fn(),
-  createUserWithEmailAndPassword: jest.fn(),
-  signOut: jest.fn(),
+jest.mock('@clerk/expo', () => ({
+  getClerkInstance: () => ({ session: { getToken: async () => 'test-token' } }),
+  useAuth: () => ({ isLoaded: true, isSignedIn: false, userId: null, signOut: jest.fn() }),
+  useUser: () => ({ isLoaded: true, isSignedIn: false, user: null }),
+  useSSO: () => ({ startSSOFlow: jest.fn() }),
+  isClerkAPIResponseError: () => false,
+  ClerkProvider: ({ children }) => children,
+}));
+
+jest.mock('@clerk/expo/legacy', () => ({
+  useSignIn: () => ({ isLoaded: true, signIn: { create: jest.fn() }, setActive: jest.fn() }),
+  useSignUp: () => ({ isLoaded: true, signUp: { create: jest.fn() }, setActive: jest.fn() }),
 }));
 
 // The subpath moved from '.../jest/async-storage-mock' to '.../jest' in

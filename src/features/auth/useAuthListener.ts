@@ -1,36 +1,36 @@
 import { useEffect } from 'react';
-import { getAuth, onAuthStateChanged, type User } from '@react-native-firebase/auth';
+import { useAuth, useUser } from '@clerk/expo';
 import { useAppDispatch } from '../../app/hooks';
 import { sessionResolved } from './authSlice';
 import { authApi } from '../../api/authApi';
 
 /**
  * Single source of truth for session state. Mounted once in App.tsx.
- * Fires immediately on cold start with the persisted user (or null),
- * which is what lets the splash screen resolve without a login flash.
+ * Fires once Clerk reports the persisted session, which is what lets the
+ * splash screen resolve without a login flash.
  */
 export function useAuthListener(): void {
   const dispatch = useAppDispatch();
+  const { isLoaded, isSignedIn, userId } = useAuth();
+  const { user } = useUser();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(getAuth(), (user: User | null) => {
-      dispatch(
-        sessionResolved(
-          user
-            ? {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                photoURL: user.photoURL,
-              }
-            : null,
-        ),
-      );
+    if (!isLoaded) return;
 
-      // Ensure the Mongo profile row exists for this uid.
-      if (user) dispatch(authApi.endpoints.syncProfile.initiate());
-    });
+    dispatch(
+      sessionResolved(
+        isSignedIn && userId
+          ? {
+              uid: userId,
+              email: user?.primaryEmailAddress?.emailAddress ?? null,
+              displayName: user?.fullName ?? user?.username ?? null,
+              photoURL: user?.imageUrl ?? null,
+            }
+          : null,
+      ),
+    );
 
-    return unsubscribe;
-  }, [dispatch]);
+    // Ensure the Mongo profile row exists for this uid.
+    if (isSignedIn) dispatch(authApi.endpoints.syncProfile.initiate());
+  }, [dispatch, isLoaded, isSignedIn, userId, user]);
 }

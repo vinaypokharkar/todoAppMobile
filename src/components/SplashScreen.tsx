@@ -4,7 +4,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { radius, typography } from '../theme/tokens';
 
 /**
- * Shown while `authSlice.initialising` is true, i.e. until Firebase reports
+ * Shown while `authSlice.initialising` is true, i.e. until Clerk reports
  * the persisted session. Holding here is what prevents a Login flash on a
  * warm start — see RootNavigator.
  */

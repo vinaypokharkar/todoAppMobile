@@ -9,7 +9,7 @@ export interface SessionUser {
 
 interface AuthState {
   user: SessionUser | null;
-  /** True until Firebase reports the persisted session. Gates the splash. */
+  /** True until Clerk reports the persisted session. Gates the splash. */
   initialising: boolean;
 }
 
