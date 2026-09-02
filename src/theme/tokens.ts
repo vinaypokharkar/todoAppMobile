@@ -39,6 +39,7 @@ export interface Theme {
     warm: string;
     onWarm: string;
     success: string;
+    onSuccess: string;
     danger: string;
     dangerSoft: string;
     overlay: string;
@@ -71,6 +72,7 @@ export const lightTheme: Theme = {
     warm: '#F2CC8F',
     onWarm: '#5C4420',
     success: '#81B29A',
+    onSuccess: '#3D405B',
     danger: '#C15A3F',
     dangerSoft: '#FBE9E4',
     overlay: 'rgba(61,64,91,0.35)',
@@ -104,6 +106,7 @@ export const darkTheme: Theme = {
     warm: '#FFA23E',
     onWarm: '#08101F',
     success: '#3ED598',
+    onSuccess: '#08101F',
     danger: '#FF4D6D',
     dangerSoft: 'rgba(255,77,109,0.14)',
     overlay: 'rgba(4,6,12,0.6)',

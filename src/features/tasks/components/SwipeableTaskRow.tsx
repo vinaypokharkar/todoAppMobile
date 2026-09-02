@@ -43,14 +43,14 @@ export function SwipeableTaskRow({ task, onToggle, onDelete, onPress }: Swipeabl
       onSwipeableOpen={handleOpen}
       renderLeftActions={() => (
         <View style={[styles.actionPanel, { backgroundColor: theme.colors.success }]}>
-          <Text style={styles.actionGlyph}>✓</Text>
+          <Text style={[styles.actionGlyph, { color: theme.colors.onSuccess }]}>✓</Text>
         </View>
       )}
       renderRightActions={() => (
         <View
           style={[styles.actionPanel, styles.rightPanel, { backgroundColor: theme.colors.danger }]}
         >
-          <Text style={styles.actionGlyph}>🗑</Text>
+          <Text style={[styles.actionGlyph, { color: theme.colors.onAccent }]}>🗑</Text>
         </View>
       )}
     >
@@ -68,5 +68,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   rightPanel: { alignSelf: 'flex-end' },
-  actionGlyph: { fontSize: typography.title.fontSize, color: '#FFFFFF' },
+  actionGlyph: { fontSize: typography.title.fontSize },
 });

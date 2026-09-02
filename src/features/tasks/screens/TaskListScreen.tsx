@@ -175,7 +175,7 @@ export default function TaskListScreen({ navigation }: Props) {
         style={[styles.fab, theme.shadow.fab]}
       >
         <LinearGradient colors={theme.colors.gradient} style={styles.fabGradient}>
-          <Text style={styles.fabIcon}>+</Text>
+          <Text style={[styles.fabIcon, { color: theme.colors.onAccent }]}>+</Text>
         </LinearGradient>
       </Pressable>
 
@@ -226,5 +226,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  fabIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '700' as const, marginTop: -2 },
+  fabIcon: { fontSize: 28, fontWeight: '700' as const, marginTop: -2 },
 });

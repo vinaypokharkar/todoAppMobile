@@ -23,7 +23,7 @@ export function DeadlineChip({ deadline, completed }: DeadlineChipProps) {
     color = theme.colors.textFaint;
   } else if (isOverdue(deadline)) {
     backgroundColor = theme.colors.priority.urgent;
-    color = '#FFFFFF';
+    color = theme.colors.onAccent;
   } else {
     const hoursLeft = (new Date(deadline).getTime() - Date.now()) / HOUR_MS;
     if (hoursLeft < 6) {

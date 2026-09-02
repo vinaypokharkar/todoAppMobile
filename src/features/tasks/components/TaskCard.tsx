@@ -53,7 +53,9 @@ export function TaskCard({ task, onToggle, onPress }: TaskCardProps) {
               },
             ]}
           >
-            {task.completed ? <Text style={styles.check}>✓</Text> : null}
+            {task.completed ? (
+              <Text style={[styles.check, { color: theme.colors.onSuccess }]}>✓</Text>
+            ) : null}
           </Pressable>
 
           <View style={styles.content}>
@@ -117,7 +119,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  check: { color: '#FFFFFF', fontSize: 11, fontWeight: '800' as const },
+  check: { fontSize: 11, fontWeight: '800' as const },
   content: { flex: 1 },
   title: { ...typography.heading, fontWeight: '700' as const },
   description: { ...typography.caption, marginTop: 2 },
