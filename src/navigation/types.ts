@@ -13,6 +13,6 @@ export type AppStackParamList = {
 
 export type TabParamList = {
   Tasks: undefined;
-  Upcoming: undefined;
+  Calendar: undefined;
   Profile: undefined;
 };

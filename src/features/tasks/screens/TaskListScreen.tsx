@@ -15,6 +15,7 @@ import { FilterSheet } from '../components/FilterSheet';
 import { SwipeableTaskRow } from '../components/SwipeableTaskRow';
 import { TaskSkeleton } from '../components/TaskSkeleton';
 import { EmptyState } from '../components/EmptyState';
+import { VoiceFab } from '../components/VoiceFab';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { setSort, clearFilters } from '../uiSlice';
 import {
@@ -23,7 +24,9 @@ import {
   useDeleteTaskMutation,
   useCreateTaskMutation,
 } from '../../../api/tasksApi';
-import type { Task } from '../../../types/task.types';
+import { parseCommand, matchTask } from '../voiceCommand';
+import { roundUpToQuarterHour, formatDateTime } from '../../../utils/date';
+import { validateTitle } from '../../../utils/validation';
 import type { TabParamList } from '../../../navigation/types';
 import type { AppStackParamList } from '../../../navigation/types';
 
@@ -47,8 +50,11 @@ export default function TaskListScreen({ navigation }: Props) {
   const ui = useAppSelector(s => s.ui);
   const user = useAppSelector(s => s.auth.user);
   const [filterVisible, setFilterVisible] = useState(false);
-  const [deletedTask, setDeletedTask] = useState<Task | null>(null);
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    actionLabel?: string;
+    onAction?: () => void;
+  } | null>(null);
 
   const { data, isLoading, isFetching, isError, refetch } = useGetTasksQuery({
     status: ui.status,
@@ -58,6 +64,11 @@ export default function TaskListScreen({ navigation }: Props) {
     sort: ui.sort,
   });
 
+  // Unfiltered snapshot for voice matching — the visible `data` above is
+  // narrowed by ui.status/priority/tag/search, so "delete X" on a task
+  // hidden by the current filter would otherwise silently miss.
+  const { data: allTasksData } = useGetTasksQuery({ status: 'all', sort: ui.sort });
+
   const [toggleTask] = useToggleTaskMutation();
   const [deleteTask] = useDeleteTaskMutation();
   const [createTask] = useCreateTaskMutation();
@@ -65,26 +76,93 @@ export default function TaskListScreen({ navigation }: Props) {
   const filtersActive =
     ui.status !== 'all' || ui.priority !== null || ui.tag !== null || ui.search !== '';
 
+  const showSnackbar = useCallback(
+    (message: string, actionLabel?: string, onAction?: () => void) => {
+      setSnackbar({ message, actionLabel, onAction });
+    },
+    [],
+  );
+
   const handleToggle = useCallback((id: string) => { toggleTask(id); }, [toggleTask]);
 
   const handleDelete = useCallback(
     (id: string) => {
       const task = data?.data.find(t => t.id === id) ?? null;
-      setDeletedTask(task);
-      setSnackbarVisible(true);
       deleteTask(id);
+      showSnackbar('Task deleted', 'Undo', () => {
+        if (task) {
+          const { title, description, startAt, deadline, priority, tags } = task;
+          createTask({ title, description, startAt, deadline, priority, tags });
+        }
+        setSnackbar(null);
+      });
     },
-    [data, deleteTask],
+    [data, deleteTask, createTask, showSnackbar],
   );
 
-  const handleUndo = useCallback(() => {
-    if (deletedTask) {
-      const { title, description, startAt, deadline, priority, tags } = deletedTask;
-      createTask({ title, description, startAt, deadline, priority, tags });
-    }
-    setSnackbarVisible(false);
-    setDeletedTask(null);
-  }, [deletedTask, createTask]);
+  const handleVoiceCommand = useCallback(
+    async (transcript: string) => {
+      const command = parseCommand(transcript);
+      const tasks = allTasksData?.data ?? [];
+
+      if (command.kind === 'unknown') {
+        showSnackbar('Try "add buy milk"');
+        return;
+      }
+
+      if (command.kind === 'add') {
+        const titleError = validateTitle(command.title);
+        if (titleError) {
+          showSnackbar(titleError);
+          return;
+        }
+        const now = new Date();
+        const deadline = command.deadline ?? new Date(roundUpToQuarterHour(now).getTime() + 60 * 60 * 1000);
+        // Rounding up can overshoot a near deadline ("in 5 minutes"), and the
+        // form's rule is deadline >= startAt — fall back to the raw now.
+        const rounded = roundUpToQuarterHour(now);
+        const startAt = rounded.getTime() <= deadline.getTime() ? rounded : now;
+        try {
+          await createTask({
+            title: command.title.trim(),
+            description: null,
+            startAt: startAt.toISOString(),
+            deadline: deadline.toISOString(),
+            priority: command.priority,
+            tags: [],
+          }).unwrap();
+          showSnackbar(`Added "${command.title}" · ${formatDateTime(deadline.toISOString())}`);
+        } catch {
+          showSnackbar("Couldn't add task");
+        }
+        return;
+      }
+
+      if (tasks.length === 0) {
+        showSnackbar('No tasks yet');
+        return;
+      }
+
+      const task = matchTask(command.title, tasks);
+      if (!task) {
+        showSnackbar(`Couldn't find "${command.title}"`);
+        return;
+      }
+
+      if (command.kind === 'complete') {
+        if (task.completed) {
+          showSnackbar(`"${task.title}" is already done`);
+        } else {
+          handleToggle(task.id);
+          showSnackbar(`Completed "${task.title}"`);
+        }
+        return;
+      }
+
+      handleDelete(task.id);
+    },
+    [allTasksData, createTask, handleToggle, handleDelete, showSnackbar],
+  );
 
   const handlePress = useCallback(
     (id: string) => navigation.navigate('TaskDetail', { id }),
@@ -179,14 +257,17 @@ export default function TaskListScreen({ navigation }: Props) {
         </LinearGradient>
       </Pressable>
 
+      <VoiceFab onCommand={handleVoiceCommand} onError={showSnackbar} />
+
       <FilterSheet visible={filterVisible} onClose={() => setFilterVisible(false)} />
 
       <Snackbar
-        visible={snackbarVisible}
-        message="Task deleted"
-        actionLabel="Undo"
-        onAction={handleUndo}
-        onDismiss={() => { setSnackbarVisible(false); setDeletedTask(null); }}
+        visible={snackbar !== null}
+        message={snackbar?.message ?? ''}
+        actionLabel={snackbar?.actionLabel}
+        onAction={snackbar?.onAction}
+        onDismiss={() => setSnackbar(null)}
+        bottom={144}
       />
     </Screen>
   );

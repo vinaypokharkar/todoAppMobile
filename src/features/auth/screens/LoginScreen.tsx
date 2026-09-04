@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -103,9 +104,7 @@ export default function LoginScreen({ navigation }: Props) {
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={[styles.brandmark, { backgroundColor: theme.colors.primary }]}>
-            <Text style={[styles.brandmarkText, { color: theme.colors.onPrimary }]}>T</Text>
-          </View>
+          <Image source={require('../../../assets/logo.png')} style={styles.brandmark} resizeMode="contain" />
 
           <Text style={[styles.heading, { color: theme.colors.text }]}>Welcome back</Text>
           <Text style={[styles.sub, { color: theme.colors.textMuted }]}>
@@ -187,14 +186,10 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.xxl },
   brandmark: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 64,
+    height: 64,
     marginBottom: spacing.lg,
   },
-  brandmarkText: { fontSize: typography.title.fontSize, fontWeight: '800' as const },
   heading: { ...typography.display, marginBottom: spacing.xs },
   sub: { ...typography.body, marginBottom: spacing.xl },
   banner: { borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },

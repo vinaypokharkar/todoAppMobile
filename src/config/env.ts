@@ -1,6 +1,6 @@
 import { API_OVERRIDE } from './apiMode.generated';
 
-const PRODUCTION_API = 'https://todo-app-server-XXXX.onrender.com';
+const PRODUCTION_API = 'https://todo-app-server-1-q2lg.onrender.com';
 
 /**
  * API_OVERRIDE is written by scripts/run-android.ps1 based on the device

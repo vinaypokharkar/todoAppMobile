@@ -15,12 +15,13 @@ export interface SnackbarProps {
   actionLabel?: string;
   onAction?: () => void;
   onDismiss: () => void;
+  bottom?: number;
 }
 
 const AUTO_DISMISS_MS = 4000;
 
 /** Absolutely positioned above the tab bar. Auto-dismisses after 4s. */
-export function Snackbar({ visible, message, actionLabel, onAction, onDismiss }: SnackbarProps) {
+export function Snackbar({ visible, message, actionLabel, onAction, onDismiss, bottom = 88 }: SnackbarProps) {
   const { theme } = useTheme();
   const translateY = useSharedValue(80);
   const opacity = useSharedValue(0);
@@ -49,7 +50,7 @@ export function Snackbar({ visible, message, actionLabel, onAction, onDismiss }:
       pointerEvents={visible ? 'box-none' : 'none'}
       style={[
         styles.container,
-        { backgroundColor: theme.colors.primary },
+        { backgroundColor: theme.colors.primary, bottom },
         animatedStyle,
       ]}
     >
@@ -75,7 +76,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: spacing.lg,
     right: spacing.lg,
-    bottom: 88,
     borderRadius: radius.md,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,

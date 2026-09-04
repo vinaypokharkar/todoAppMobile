@@ -22,3 +22,12 @@ jest.mock('@clerk/expo/legacy', () => ({
 // this installed version (v3) — see the package's "exports" map.
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest'));
+
+jest.mock('expo-speech-recognition', () => ({
+  ExpoSpeechRecognitionModule: {
+    requestPermissionsAsync: jest.fn(async () => ({ granted: true, canAskAgain: true })),
+    start: jest.fn(),
+    stop: jest.fn(),
+  },
+  useSpeechRecognitionEvent: jest.fn(),
+}));
